@@ -41,7 +41,8 @@ selenium-tests:
         xdg-utils \
         libgconf-2-4 \
         libxi6 \
-        libxss1
+        libxss1 \
+        maven
 
     # Install Google Chrome stable
     - wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
