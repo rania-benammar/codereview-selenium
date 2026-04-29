@@ -2,7 +2,6 @@ stages:
   - test
 
 variables:
-  CHROME_DRIVER_VERSION: "latest"
   SCREENSHOTS_DIR: "screenshots"
   NODE_ENV: "test"
 
@@ -11,37 +10,8 @@ selenium-tests:
   image: node:20-bullseye
 
   before_script:
-    # Install Chrome + ChromeDriver
     - apt-get update -qq
-    - apt-get install -y -qq \
-      wget \
-      curl \
-      unzip \
-      gnupg \
-      ca-certificates \
-      fonts-liberation \
-      libasound2 \
-      libatk-bridge2.0-0 \
-      libatk1.0-0 \
-      libatspi2.0-0 \
-      libcups2 \
-      libdbus-1-3 \
-      libdrm2 \
-      libgbm1 \
-      libgtk-3-0 \
-      libnspr4 \
-      libnss3 \
-      libx11-xcb1 \
-      libxcb-dri3-0 \
-      libxcomposite1 \
-      libxdamage1 \
-      libxfixes3 \
-      libxkbcommon0 \
-      libxrandr2 \
-      xdg-utils \
-      libgconf-2-4 \
-      libxi6 \
-      libxss1
+    - apt-get install -y -qq wget curl unzip gnupg ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libcups2 libdbus-1-3 libdrm2 libgbm1 libgtk-3-0 libnspr4 libnss3 libx11-xcb1 libxcb-dri3-0 libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 xdg-utils libxi6 libxss1
 
     # Install Google Chrome stable
     - wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
@@ -69,20 +39,16 @@ selenium-tests:
     - npm test
 
   after_script:
-    # List captured screenshots for visibility in job log
     - echo "=== Captured screenshots ==="
     - ls -lh $SCREENSHOTS_DIR || echo "No screenshots found"
 
   artifacts:
     name: "selenium-screenshots-$CI_COMMIT_SHORT_SHA"
-    when: always   # Collect even on failure (useful for debugging)
+    when: always
     expire_in: 7 days
     paths:
-      - $SCREENSHOTS_DIR/
-    reports:
-      junit: test-results.xml   # Remove if you don't generate JUnit XML
+      - screenshots/
 
-  # Optional: cache node_modules between pipelines
   cache:
     key:
       files:
@@ -90,7 +56,6 @@ selenium-tests:
     paths:
       - node_modules/
 
-  # Run only on MRs and main/develop branches
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'
