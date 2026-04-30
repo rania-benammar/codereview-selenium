@@ -2,6 +2,7 @@ package com.monprojet;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.*;
 import org.testng.Assert;
 import org.testng.annotations.*;
@@ -21,8 +22,13 @@ public class CreateTeamTest {
     @BeforeClass
     public void setUp() {
         WebDriverManager.chromedriver().setup();
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless=new"); 
+        options.addArguments("--no-sandbox");   
+        options.addArguments("--disable-dev-shm-usage"); 
+        options.addArguments("--disable-gpu");
+        driver = new ChromeDriver(options);
+        // driver.manage().window().maximize();
         wait = new WebDriverWait(driver, Duration.ofSeconds(30));
     }
 
