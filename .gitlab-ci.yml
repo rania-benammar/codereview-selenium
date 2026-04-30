@@ -2,61 +2,47 @@ stages:
   - test
 
 variables:
-  SCREENSHOTS_DIR: "screenshots"
-  NODE_ENV: "test"
+  # Empêche Maven de télécharger les plugins à chaque fois
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  SCREENSHOTS_DIR: "selenium-tests/screenshots"
 
 selenium-tests:
   stage: test
-  image: node:20-bullseye
+  image: maven:3-openjdk-21-slim # Version slim pour gagner du temps
+  
+  services:
+    - name: selenium/standalone-chrome:latest
+      alias: chrome-server
 
   before_script:
-    - apt-get update -qq
-    - apt-get install -y -qq wget curl unzip gnupg ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libcups2 libdbus-1-3 libdrm2 libgbm1 libgtk-3-0 libnspr4 libnss3 libx11-xcb1 libxcb-dri3-0 libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 xdg-utils libxi6 libxss1 maven
-
-    # Install Google Chrome stable
-    - wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
-    - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
-    - apt-get update -qq
-    - apt-get install -y -qq google-chrome-stable
-
-    # Install ChromeDriver matching installed Chrome version
-    - CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d. -f1)
-    - echo "Detected Chrome major version $CHROME_VERSION"
-    - CHROMEDRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/$(curl -s https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${CHROME_VERSION})/linux64/chromedriver-linux64.zip"
-    - wget -q "$CHROMEDRIVER_URL" -O chromedriver.zip
-    - unzip -q chromedriver.zip
-    - mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
-    - chmod +x /usr/local/bin/chromedriver
-    - chromedriver --version
-
-    # Install Node dependencies
-    - npm ci
-
-    # Create screenshots output directory
-    - mkdir -p $SCREENSHOTS_DIR
+    - apt-get update -qq && apt-get install -y -qq wget gnupg unzip curl
+    # Installation simplifiée de Chrome (nécessaire pour le mode 'headless' local)
+    - apt-get update && apt-get install -y fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libcups2 libdbus-1-3 libdrm2 libgbm1 libgtk-3-0 libnspr4 libnss3 libx11-xcb1 libxcb-dri3-0 libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 xdg-utils
+    - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+    - dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -fy
+    
+    # Note : Plus besoin d'installer manuellement ChromeDriver avec Selenium 4.11+ 
+    # Selenium Manager s'en occupe automatiquement.
 
   script:
-    - npm test
+    - cd selenium-tests
+    # Exécution en mode headless (assurez-vous que votre code Java configure ChromeOptions)
+    - mvn $MAVEN_OPTS clean test
 
   after_script:
-    - echo "=== Captured screenshots ==="
-    - ls -lh $SCREENSHOTS_DIR || echo "No screenshots found"
+    - echo "Recherche des rapports et captures..."
 
   artifacts:
-    name: "selenium-screenshots-$CI_COMMIT_SHORT_SHA"
+    name: "selenium-reports-$CI_COMMIT_SHORT_SHA"
     when: always
     expire_in: 7 days
     paths:
-      - screenshots/
+      - selenium-tests/target/surefire-reports/
+      - $SCREENSHOTS_DIR/
+    reports:
+      junit: selenium-tests/target/surefire-reports/TEST-*.xml
 
   cache:
-    key:
-      files:
-        - package-lock.json
+    key: maven-cache
     paths:
-      - node_modules/
-
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
+      - .m2/repository
