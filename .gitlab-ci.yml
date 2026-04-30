@@ -27,8 +27,9 @@ selenium-tests:
   script:
     - cd selenium-tests
     - mvn --version
-    #- mvn clean test
+    # - mvn clean test
     # Exécution en mode headless (assurez-vous que votre code Java configure ChromeOptions)
+    - mvn $MAVEN_OPTS clean test
     - mvn $MAVEN_OPTS clean test
 
   after_script:
@@ -48,3 +49,7 @@ selenium-tests:
     key: maven-cache
     paths:
       - .m2/repository
+  
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
