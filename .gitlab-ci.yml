@@ -8,10 +8,10 @@ variables:
 
 selenium-tests:
   stage: test
-  image: maven:3-openjdk-21 # Version slim pour gagner du temps
+  image: maven:3.9.6-eclipse-temurin-21 
   
   services:
-    - name: selenium/standalone-chrome:latest
+    - name: selenium/standalone-chrome:147.0-20260404
       alias: chrome-server
 
   before_script:
@@ -26,8 +26,10 @@ selenium-tests:
 
   script:
     - cd selenium-tests
+    - mvn --version
+    - mvn clean test
     # Exécution en mode headless (assurez-vous que votre code Java configure ChromeOptions)
-    - mvn $MAVEN_OPTS clean test
+    # - mvn $MAVEN_OPTS clean test
 
   after_script:
     - echo "Recherche des rapports et captures..."
