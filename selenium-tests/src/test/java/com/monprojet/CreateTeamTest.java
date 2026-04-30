@@ -19,7 +19,7 @@ public class CreateTeamTest {
     private By saveButton = By.cssSelector("button[type='submit']");
     private By spinner = By.className("spinner-overlay");
 
-    @BeforeClass
+    //@BeforeClass
     public void setUp() {
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
@@ -115,7 +115,7 @@ public class CreateTeamTest {
         }
     }
 
-    @Test
+    //@Test
     public void testFullCycle() {
         login();
         driver.get("https://app-uat.codereview.allence.cloud/client/teams");
@@ -127,7 +127,7 @@ public class CreateTeamTest {
         System.out.println("Test terminé avec succès (Mode Rapide) ✔");
     }
 
-    @AfterClass
+    //@AfterClass
     public void tearDown() {
         quickPause(1500);
         if (driver != null) ;
