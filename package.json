@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "cd selenium-tests && mvn test"
+    "test": "cd selenium-tests && mvn clean test"
   },
   "keywords": [],
   "author": "",
