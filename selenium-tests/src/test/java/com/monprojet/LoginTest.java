@@ -4,6 +4,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
@@ -13,8 +14,13 @@ public class LoginTest {
     @BeforeMethod
     public void setup() {
         WebDriverManager.chromedriver().setup();
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless=new"); 
+        options.addArguments("--no-sandbox");   
+        options.addArguments("--disable-dev-shm-usage"); 
+        options.addArguments("--disable-gpu");
+        driver = new ChromeDriver(options);
+        // driver.manage().window().maximize();
         driver.get("https://app-uat.codereview.allence.cloud/auth/login");
     }
 

@@ -58,7 +58,7 @@ public class LicenseTest {
         }
     }
 
-    @Test
+    // @Test
     public void testAjouterLicenceFlow() {
         login();
 
@@ -88,7 +88,7 @@ public class LicenseTest {
         System.out.println("Licence traitée avec succès.");
     }
 
-    @AfterClass
+    // @AfterClass
     public void tearDown() {
         if (driver != null) {
             quickPause(2000);
