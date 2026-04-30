@@ -30,7 +30,6 @@ selenium-tests:
     # - mvn clean test
     # Exécution en mode headless (assurez-vous que votre code Java configure ChromeOptions)
     - mvn $MAVEN_OPTS clean test
-    - mvn $MAVEN_OPTS clean test
 
   after_script:
     - echo "Recherche des rapports et captures..."
