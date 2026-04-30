@@ -8,7 +8,7 @@ variables:
 
 selenium-tests:
   stage: test
-  image: maven:3-openjdk-21-slim # Version slim pour gagner du temps
+  image: maven:3-openjdk-21 # Version slim pour gagner du temps
   
   services:
     - name: selenium/standalone-chrome:latest
