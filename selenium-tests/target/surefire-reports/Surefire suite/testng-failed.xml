@@ -3,13 +3,13 @@
 <suite name="Failed suite [Surefire suite]" verbose="0">
   <test thread-count="5" name="Surefire test(failed)" verbose="0">
     <classes>
-      <class name="com.monprojet.LicenseTest">
+      <class name="com.monprojet.LoginTest">
         <methods>
-          <include name="testAjouterLicenceFlow"/>
-          <include name="tearDown"/>
-          <include name="setUp"/>
+          <include name="testToutValide"/>
+          <include name="setup"/>
+          <include name="finish"/>
         </methods>
-      </class> <!-- com.monprojet.LicenseTest -->
+      </class> <!-- com.monprojet.LoginTest -->
     </classes>
   </test> <!-- Surefire test(failed) -->
 </suite> <!-- Failed suite [Surefire suite] -->

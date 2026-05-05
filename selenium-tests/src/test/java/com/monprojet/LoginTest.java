@@ -3,87 +3,97 @@ package com.monprojet;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
+import java.time.Duration;
+
 public class LoginTest {
     WebDriver driver;
+    WebDriverWait wait;
 
     @BeforeMethod
     public void setup() {
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new"); 
+        
+        // Headless désactivé pour voir l'exécution
+        // options.addArguments("--headless=new"); 
+        
         options.addArguments("--no-sandbox");   
         options.addArguments("--disable-dev-shm-usage"); 
-        options.addArguments("--disable-gpu");
+        
         driver = new ChromeDriver(options);
-        // driver.manage().window().maximize();
+        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        
+        driver.manage().window().maximize();
         driver.get("https://app-uat.codereview.allence.cloud/auth/login");
     }
 
-    public void taperLoginLentement(String email, String mdp) throws InterruptedException {
-        Thread.sleep(1500); 
-        driver.findElement(By.id("email")).sendKeys(email);
+    /**
+     * Méthode commune pour saisir les identifiants et cliquer sur login
+     */
+    public void effectuerLogin(String email, String mdp) {
+        WebElement emailField = wait.until(ExpectedConditions.elementToBeClickable(By.id("email")));
+        emailField.clear();
+        emailField.sendKeys(email);
         
-        Thread.sleep(1000); 
-        driver.findElement(By.cssSelector("input[type='password']")).sendKeys(mdp);
+        WebElement passwordField = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("input[type='password']")));
+        passwordField.clear();
+        passwordField.sendKeys(mdp);
         
-        Thread.sleep(1000); 
-        driver.findElement(By.cssSelector("button[type='submit']")).click();
+        WebElement submitBtn = driver.findElement(By.cssSelector("button[type='submit']"));
+        submitBtn.click();
+    }
+
+    // 1. EMAIL VALIDE / MDP INVALIDE
+    @Test(priority = 1)
+    public void testEmailValideMdpInvalide() {
+        effectuerLogin("raniabenammar491@gmail.com", "mauvais_mdp");
+        Assert.assertTrue(driver.getCurrentUrl().contains("/auth/login"), "ERREUR : On aurait dû rester sur la page login (MDP faux).");
+    }
+
+    // 2. EMAIL INVALIDE / MDP VALIDE
+    @Test(priority = 2)
+    public void testEmailInvalideMdpValide() {
+        effectuerLogin("fausse_rania@gmail.com", "123456");
+        Assert.assertTrue(driver.getCurrentUrl().contains("/auth/login"), "ERREUR : On aurait dû rester sur la page login (Email faux).");
+    }
+
+    // 3. EMAIL VIDE / MDP VALIDE
+    @Test(priority = 3)
+    public void testEmailVideMdpValide() {
+        effectuerLogin("", "123456");
+        Assert.assertTrue(driver.getCurrentUrl().contains("/auth/login"), "ERREUR : On aurait dû rester sur la page login (Email vide).");
+    }
+
+    // 4. EMAIL VALIDE / MDP VIDE
+    @Test(priority = 4)
+    public void testEmailValideMdpVide() {
+        effectuerLogin("raniabenammar491@gmail.com", "");
+        Assert.assertTrue(driver.getCurrentUrl().contains("/auth/login"), "ERREUR : On aurait dû rester sur la page login (MDP vide).");
+    }
+
+    // 5. TOUT VALIDE (Le test positif)
+    @Test(priority = 5)
+    public void testToutValide() {
+        effectuerLogin("raniabenammar491@gmail.com", "123456");
         
-        // On attend un peu plus pour laisser le temps à la redirection de se faire
-        Thread.sleep(5000); 
-    }
-
-    @Test
-    public void testToutValide() throws InterruptedException {
-        taperLoginLentement("raniabenammar491@gmail.com", "123456");
+        // On attend que l'URL ne contienne plus "/auth/login" (redirection vers dashboard)
+        boolean redirectionReussie = wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/auth/login")));
         
-        String urlApresLogin = driver.getCurrentUrl();
-        
-        // CORRECTION : On vérifie que l'URL a CHANGÉ et ne contient plus "/auth/login"
-        // Si ça échoue encore ici, c'est que tes identifiants ne sont pas acceptés par le site !
-        Assert.assertFalse(urlApresLogin.contains("/auth/login"), 
-            "Erreur : On est toujours sur la page de login. URL actuelle : " + urlApresLogin);
-    }
-
-    @Test
-    public void testEmailValideMdpInvalide() throws InterruptedException {
-        taperLoginLentement("raniabenammar491@gmail.com", "mauvais_mdp");
-        Assert.assertTrue(driver.getCurrentUrl().contains("/auth/login"));
-    }
-
-    @Test
-    public void testEmailInvalideMdpValide() throws InterruptedException {
-        taperLoginLentement("inconnu@test.com", "123456");
-        Assert.assertTrue(driver.getCurrentUrl().contains("/auth/login"));
-    }
-
-    @Test
-    public void testEmailInvalideMdpInvalide() throws InterruptedException {
-        taperLoginLentement("inconnu@test.com", "mauvais_mdp");
-        Assert.assertTrue(driver.getCurrentUrl().contains("/auth/login"));
-    }
-
-    @Test
-    public void testEmailVideMdpValide() throws InterruptedException {
-        taperLoginLentement("", "123456");
-        Assert.assertTrue(driver.getCurrentUrl().contains("/auth/login"));
-    }
-
-    @Test
-    public void testEmailValideMdpVide() throws InterruptedException {
-        taperLoginLentement("raniabenammar491@gmail.com", "");
-        Assert.assertTrue(driver.getCurrentUrl().contains("/auth/login"));
+        Assert.assertTrue(redirectionReussie, "ERREUR : La connexion a échoué avec des identifiants valides.");
     }
 
     @AfterMethod
-    public void finish() throws InterruptedException {
-        Thread.sleep(2000); 
+    public void finish() {
         if (driver != null) {
+            // driver.quit(); // Garde la fenêtre ouverte pour voir le résultat final
         }
     }
 }

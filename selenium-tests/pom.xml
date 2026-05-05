@@ -37,6 +37,11 @@
             <version>7.9.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+    <groupId>org.seleniumhq.selenium</groupId>
+    <artifactId>selenium-devtools-v125</artifactId> <!-- Adapte à ta version -->
+    <version>4.21.0</version>
+</dependency>
     </dependencies>
 
     <build>
