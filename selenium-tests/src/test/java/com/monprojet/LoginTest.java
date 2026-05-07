@@ -165,7 +165,7 @@ public class LoginTest {
         // Pause avant de fermer pour voir le résultat final
         pause();
         if (driver != null) {
-            
+            driver.quit();
         }
     }
 }
