@@ -33,29 +33,30 @@ public class LoginTest {
         }
     }
 
-    @BeforeMethod
-    public void setup() throws MalformedURLException {
-        ChromeOptions options = new ChromeOptions();
+  @BeforeMethod
+public void setup() throws MalformedURLException {
+    ChromeOptions options = new ChromeOptions();
 
-        String seleniumUrl = System.getenv("SELENIUM_URL");
-
-        if (seleniumUrl != null && !seleniumUrl.isEmpty()) {
-            driver = new RemoteWebDriver(new URL(seleniumUrl), options);
-        } else {
-            options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
-            driver = new ChromeDriver(options);
-        }
-
-        // Timeout d'attente augmenté à 30 secondes
-        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-        driver.manage().window().maximize();
-
-        pause();
-        driver.get(LOGIN_URL);
-
-        // Attendre que la page soit bien chargée
-        pause();
+    // Lit d'abord la propriété système, puis la variable d'environnement
+    String seleniumUrl = System.getProperty("SELENIUM_URL");
+    if (seleniumUrl == null || seleniumUrl.isEmpty()) {
+        seleniumUrl = System.getenv("SELENIUM_URL");
     }
+
+    if (seleniumUrl != null && !seleniumUrl.isEmpty()) {
+        options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+        driver = new RemoteWebDriver(new URL(seleniumUrl), options);
+    } else {
+        options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+        driver = new ChromeDriver(options);
+    }
+
+    wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+    driver.manage().window().maximize();
+    pause();
+    driver.get(LOGIN_URL);
+    pause();
+}
 
     /**
      * Saisit les identifiants lentement et clique sur le bouton de connexion.
