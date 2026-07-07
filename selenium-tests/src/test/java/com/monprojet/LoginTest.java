@@ -33,30 +33,29 @@ public class LoginTest {
         }
     }
 
-  @BeforeMethod
-public void setup() throws MalformedURLException {
-    ChromeOptions options = new ChromeOptions();
+    @BeforeMethod
+    public void setup() throws MalformedURLException {
+        ChromeOptions options = new ChromeOptions();
 
-    // Lit d'abord la propriété système, puis la variable d'environnement
-    String seleniumUrl = System.getProperty("SELENIUM_URL");
-    if (seleniumUrl == null || seleniumUrl.isEmpty()) {
-        seleniumUrl = System.getenv("SELENIUM_URL");
+        String seleniumUrl = System.getenv("SELENIUM_URL");
+
+        if (seleniumUrl != null && !seleniumUrl.isEmpty()) {
+            driver = new RemoteWebDriver(new URL(seleniumUrl), options);
+        } else {
+            options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+            driver = new ChromeDriver(options);
+        }
+
+        // Timeout d'attente augmenté à 30 secondes
+        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        driver.manage().window().maximize();
+
+        pause();
+        driver.get(LOGIN_URL);
+
+        // Attendre que la page soit bien chargée
+        pause();
     }
-
-    if (seleniumUrl != null && !seleniumUrl.isEmpty()) {
-        options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
-        driver = new RemoteWebDriver(new URL(seleniumUrl), options);
-    } else {
-        options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
-        driver = new ChromeDriver(options);
-    }
-
-    wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-    driver.manage().window().maximize();
-    pause();
-    driver.get(LOGIN_URL);
-    pause();
-}
 
     /**
      * Saisit les identifiants lentement et clique sur le bouton de connexion.
@@ -115,7 +114,7 @@ public void setup() throws MalformedURLException {
     // 2. Email invalide / mot de passe valide
     @Test(priority = 2)
     public void testEmailInvalideMdpValide() {
-        effectuerLogin("fausse_rania@gmail.com", "123456");
+        effectuerLogin("fausse_rania@gmail.com", "1234566");
         pause();
         Assert.assertTrue(
             driver.getCurrentUrl().contains("/auth/login"),
@@ -126,7 +125,7 @@ public void setup() throws MalformedURLException {
     // 3. Email vide / mot de passe valide
     @Test(priority = 3)
     public void testEmailVideMdpValide() {
-        effectuerLogin("", "123456");
+        effectuerLogin("", "1234566");
         pause();
         Assert.assertTrue(
             driver.getCurrentUrl().contains("/auth/login"),
@@ -148,7 +147,7 @@ public void setup() throws MalformedURLException {
     // 5. Identifiants valides — test positif
     @Test(priority = 5)
     public void testToutValide() {
-        effectuerLogin("raniabenammar491@gmail.com", "123456");
+        effectuerLogin("raniabenammar491@gmail.com", "1234566");
         pause();
 
         boolean redirectionReussie = wait.until(
