@@ -40,9 +40,12 @@ public void setup() throws MalformedURLException {
 
     String seleniumUrl = System.getProperty("SELENIUM_URL");
 
+    System.out.println("SELENIUM_URL = " + seleniumUrl);
+
     if (seleniumUrl != null && !seleniumUrl.isEmpty()) {
 
-        // Exécution GitLab CI avec Selenium Server
+        System.out.println("Execution GitLab avec RemoteWebDriver");
+
         options.addArguments("--headless=new");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
@@ -56,12 +59,15 @@ public void setup() throws MalformedURLException {
 
     } else {
 
-        // Exécution locale avec Chrome visible
+        System.out.println("Execution locale avec Chrome visible");
+
         options.addArguments("--window-size=1920,1080");
 
         driver = new ChromeDriver(options);
+
         driver.manage().window().maximize();
     }
+
 
     // Timeout d'attente augmenté à 30 secondes
     wait = new WebDriverWait(driver, Duration.ofSeconds(30));
