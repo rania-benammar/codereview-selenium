@@ -39,16 +39,20 @@ public void setup() throws MalformedURLException {
 
     String seleniumUrl = System.getProperty("SELENIUM_URL");
 
-    if (seleniumUrl == null || seleniumUrl.isEmpty()) {
+    if (seleniumUrl == null || seleniumUrl.trim().isEmpty()) {
         seleniumUrl = System.getenv("SELENIUM_URL");
     }
 
-    System.out.println("SELENIUM_URL utilisé = " + seleniumUrl);
+    if (seleniumUrl != null) {
+        seleniumUrl = seleniumUrl.trim();
+    }
+
+    System.out.println("SELENIUM_URL utilisé = [" + seleniumUrl + "]");
 
 
     if (seleniumUrl == null || seleniumUrl.isEmpty()) {
         throw new RuntimeException(
-            "SELENIUM_URL absent. Impossible de lancer Selenium."
+                "SELENIUM_URL absent. Vérifiez la configuration GitLab CI."
         );
     }
 
@@ -66,11 +70,19 @@ public void setup() throws MalformedURLException {
     );
 
 
-    wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+    wait = new WebDriverWait(
+            driver,
+            Duration.ofSeconds(30)
+    );
+
+
+    driver.manage().window().setSize(
+            new org.openqa.selenium.Dimension(1920, 1080)
+    );
+
 
     driver.get(LOGIN_URL);
 }
-    
 
     /**
      * Saisit les identifiants lentement et clique sur le bouton de connexion.
