@@ -3,7 +3,6 @@ package com.monprojet;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -33,51 +32,52 @@ public class LoginTest {
         }
     }
 
-@BeforeMethod
-public void setup() throws MalformedURLException {
+    @BeforeMethod
+    public void setup() throws MalformedURLException {
 
-    ChromeOptions options = new ChromeOptions();
+        ChromeOptions options = new ChromeOptions();
 
-    String seleniumUrl = System.getProperty("SELENIUM_URL");
+        String seleniumUrl = System.getProperty("SELENIUM_URL");
 
-    System.out.println("SELENIUM_URL = " + seleniumUrl);
+        if (seleniumUrl == null || seleniumUrl.isEmpty()) {
+            seleniumUrl = System.getenv("SELENIUM_URL");
+        }
 
-    if (seleniumUrl != null && !seleniumUrl.isEmpty()) {
+        System.out.println("SELENIUM_URL = " + seleniumUrl);
 
-        System.out.println("Execution GitLab avec RemoteWebDriver");
+        if (seleniumUrl == null || seleniumUrl.isEmpty()) {
 
-        options.addArguments("--headless=new");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--window-size=1920,1080");
+            throw new RuntimeException(
+                    "SELENIUM_URL absent : execution Chrome local désactivée"
+            );
 
-        driver = new RemoteWebDriver(
-                new URL(seleniumUrl),
-                options
-        );
+        } else {
 
-    } else {
+            System.out.println("Execution GitLab avec RemoteWebDriver");
 
-        System.out.println("Execution locale avec Chrome visible");
+            options.addArguments("--headless=new");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--disable-gpu");
+            options.addArguments("--window-size=1920,1080");
 
-        options.addArguments("--window-size=1920,1080");
+            driver = new RemoteWebDriver(
+                    new URL(seleniumUrl),
+                    options
+            );
+        }
 
-        driver = new ChromeDriver(options);
 
-        driver.manage().window().maximize();
+        // Timeout d'attente augmenté à 30 secondes
+        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+        pause();
+        driver.get(LOGIN_URL);
+
+        // Attendre que la page soit bien chargée
+        pause();
     }
 
-
-    // Timeout d'attente augmenté à 30 secondes
-    wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-
-    pause();
-    driver.get(LOGIN_URL);
-
-    // Attendre que la page soit bien chargée
-    pause();
-}
     /**
      * Saisit les identifiants lentement et clique sur le bouton de connexion.
      */
@@ -181,11 +181,12 @@ public void setup() throws MalformedURLException {
         );
     }
 
-    @AfterMethod
-    public void finish() {
-        // Pause avant de fermer pour voir le résultat final
-        pause();
-        if (driver != null) {
-        }
+@AfterMethod
+public void finish() {
+    // Pause avant de fermer pour voir le résultat final
+    pause();
+    if (driver != null) {
+        driver.quit();
     }
+}
 }
