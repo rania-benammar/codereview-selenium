@@ -3,6 +3,7 @@ package com.monprojet;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -43,43 +44,38 @@ public void setup() throws MalformedURLException {
         seleniumUrl = System.getenv("SELENIUM_URL");
     }
 
-    if (seleniumUrl != null) {
-        seleniumUrl = seleniumUrl.trim();
-    }
-
     System.out.println("SELENIUM_URL utilisé = [" + seleniumUrl + "]");
 
 
-    if (seleniumUrl == null || seleniumUrl.isEmpty()) {
-        throw new RuntimeException(
-                "SELENIUM_URL absent. Vérifiez la configuration GitLab CI."
+    if (seleniumUrl != null && !seleniumUrl.trim().isEmpty()) {
+
+        System.out.println("Mode Selenium Grid");
+
+        options.addArguments("--headless=new");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--window-size=1920,1080");
+
+        driver = new RemoteWebDriver(
+                new URL(seleniumUrl),
+                options
         );
+
+    } else {
+
+        System.out.println("Mode Chrome local");
+
+        options.addArguments("--window-size=1920,1080");
+
+        driver = new ChromeDriver(options);
     }
-
-
-    options.addArguments("--headless=new");
-    options.addArguments("--no-sandbox");
-    options.addArguments("--disable-dev-shm-usage");
-    options.addArguments("--disable-gpu");
-    options.addArguments("--window-size=1920,1080");
-
-
-    driver = new RemoteWebDriver(
-            new URL(seleniumUrl),
-            options
-    );
 
 
     wait = new WebDriverWait(
             driver,
             Duration.ofSeconds(30)
     );
-
-
-    driver.manage().window().setSize(
-            new org.openqa.selenium.Dimension(1920, 1080)
-    );
-
 
     driver.get(LOGIN_URL);
 }
