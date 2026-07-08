@@ -33,30 +33,41 @@ public class LoginTest {
         }
     }
 
-    @BeforeMethod
-    public void setup() throws MalformedURLException {
-        ChromeOptions options = new ChromeOptions();
+@BeforeMethod
+public void setup() throws MalformedURLException {
+    ChromeOptions options = new ChromeOptions();
 
-        String seleniumUrl = System.getenv("SELENIUM_URL");
+    String seleniumUrl = System.getenv("SELENIUM_URL");
 
-        if (seleniumUrl != null && !seleniumUrl.isEmpty()) {
-            driver = new RemoteWebDriver(new URL(seleniumUrl), options);
-        } else {
-            options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
-            driver = new ChromeDriver(options);
-        }
+    // Options recommandées pour GitLab CI / Docker
+    if (seleniumUrl != null && !seleniumUrl.isEmpty()) {
+        // Exécution GitLab CI : Chrome sans interface graphique
+        options.addArguments("--headless=new");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--window-size=1920,1080");
+        options.addArguments("--remote-allow-origins=*");
 
-        // Timeout d'attente augmenté à 30 secondes
-        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        driver = new RemoteWebDriver(new URL(seleniumUrl), options);
+
+    } else {
+        // Exécution locale : Chrome visible
+        options.addArguments("--window-size=1920,1080");
+
+        driver = new ChromeDriver(options);
         driver.manage().window().maximize();
-
-        pause();
-        driver.get(LOGIN_URL);
-
-        // Attendre que la page soit bien chargée
-        pause();
     }
 
+    // Timeout d'attente augmenté à 30 secondes
+    wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+    pause();
+    driver.get(LOGIN_URL);
+
+    // Attendre que la page soit bien chargée
+    pause();
+}
     /**
      * Saisit les identifiants lentement et clique sur le bouton de connexion.
      */
