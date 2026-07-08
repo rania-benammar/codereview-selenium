@@ -32,51 +32,45 @@ public class LoginTest {
         }
     }
 
-    @BeforeMethod
-    public void setup() throws MalformedURLException {
+@BeforeMethod
+public void setup() throws MalformedURLException {
 
-        ChromeOptions options = new ChromeOptions();
+    ChromeOptions options = new ChromeOptions();
 
-        String seleniumUrl = System.getProperty("SELENIUM_URL");
+    String seleniumUrl = System.getProperty("SELENIUM_URL");
 
-        if (seleniumUrl == null || seleniumUrl.isEmpty()) {
-            seleniumUrl = System.getenv("SELENIUM_URL");
-        }
-
-        System.out.println("SELENIUM_URL = " + seleniumUrl);
-
-        if (seleniumUrl == null || seleniumUrl.isEmpty()) {
-
-            throw new RuntimeException(
-                    "SELENIUM_URL absent : execution Chrome local désactivée"
-            );
-
-        } else {
-
-            System.out.println("Execution GitLab avec RemoteWebDriver");
-
-            options.addArguments("--headless=new");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--disable-gpu");
-            options.addArguments("--window-size=1920,1080");
-
-            driver = new RemoteWebDriver(
-                    new URL(seleniumUrl),
-                    options
-            );
-        }
-
-
-        // Timeout d'attente augmenté à 30 secondes
-        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-
-        pause();
-        driver.get(LOGIN_URL);
-
-        // Attendre que la page soit bien chargée
-        pause();
+    if (seleniumUrl == null || seleniumUrl.isEmpty()) {
+        seleniumUrl = System.getenv("SELENIUM_URL");
     }
+
+    System.out.println("SELENIUM_URL utilisé = " + seleniumUrl);
+
+
+    if (seleniumUrl == null || seleniumUrl.isEmpty()) {
+        throw new RuntimeException(
+            "SELENIUM_URL absent. Impossible de lancer Selenium."
+        );
+    }
+
+
+    options.addArguments("--headless=new");
+    options.addArguments("--no-sandbox");
+    options.addArguments("--disable-dev-shm-usage");
+    options.addArguments("--disable-gpu");
+    options.addArguments("--window-size=1920,1080");
+
+
+    driver = new RemoteWebDriver(
+            new URL(seleniumUrl),
+            options
+    );
+
+
+    wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+    driver.get(LOGIN_URL);
+}
+    
 
     /**
      * Saisit les identifiants lentement et clique sur le bouton de connexion.
