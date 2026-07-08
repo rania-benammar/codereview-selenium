@@ -5,14 +5,11 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.Duration;
 
 public class LoginTest {
@@ -20,9 +17,9 @@ public class LoginTest {
     WebDriver driver;
     WebDriverWait wait;
 
-    private static final String LOGIN_URL = "https://app-uat.codereview.allence.cloud/auth/login";
+    private static final String LOGIN_URL =
+            "https://app-uat.codereview.allence.cloud/auth/login";
 
-    // Pause visible entre chaque action (en millisecondes)
     private static final int PAUSE = 1500;
 
     private void pause() {
@@ -33,162 +30,179 @@ public class LoginTest {
         }
     }
 
-@BeforeMethod
-public void setup() throws MalformedURLException {
 
-    ChromeOptions options = new ChromeOptions();
+    @BeforeMethod
+    public void setup() {
 
-    String seleniumUrl = System.getProperty("SELENIUM_URL");
+        ChromeOptions options = new ChromeOptions();
 
-    if (seleniumUrl == null || seleniumUrl.trim().isEmpty()) {
-        seleniumUrl = System.getenv("SELENIUM_URL");
-    }
-
-    System.out.println("SELENIUM_URL utilisé = [" + seleniumUrl + "]");
-
-
-    if (seleniumUrl != null && !seleniumUrl.trim().isEmpty()) {
-
-        System.out.println("Mode Selenium Grid");
-
-        options.addArguments("--headless=new");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--window-size=1920,1080");
-
-        driver = new RemoteWebDriver(
-                new URL(seleniumUrl),
-                options
-        );
-
-    } else {
-
-        System.out.println("Mode Chrome local");
-
-        options.addArguments("--window-size=1920,1080");
+        // IMPORTANT : ne pas mettre --headless
+        options.addArguments("--start-maximized");
+        options.addArguments("--disable-notifications");
+        options.addArguments("--disable-popup-blocking");
 
         driver = new ChromeDriver(options);
+
+        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+        driver.manage().window().maximize();
+
+        pause();
+
+        driver.get(LOGIN_URL);
+
+        pause();
     }
 
 
-    wait = new WebDriverWait(
-            driver,
-            Duration.ofSeconds(30)
-    );
-
-    driver.get(LOGIN_URL);
-}
-
-    /**
-     * Saisit les identifiants lentement et clique sur le bouton de connexion.
-     */
     public void effectuerLogin(String email, String mdp) {
-        // Attendre et remplir le champ email
+
         WebElement emailField = wait.until(
-            ExpectedConditions.elementToBeClickable(By.id("email"))
+                ExpectedConditions.elementToBeClickable(By.id("email"))
         );
-        pause();
+
         emailField.clear();
         pause();
 
-        // Saisie lettre par lettre pour simuler un utilisateur réel
-        for (char c : email.toCharArray()) {
+        for(char c : email.toCharArray()) {
             emailField.sendKeys(String.valueOf(c));
-            try { Thread.sleep(80); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            try {
+                Thread.sleep(100);
+            } catch(Exception e) {}
         }
+
         pause();
 
-        // Attendre et remplir le champ mot de passe
+
         WebElement passwordField = wait.until(
-            ExpectedConditions.elementToBeClickable(By.cssSelector("input[type='password']"))
+                ExpectedConditions.elementToBeClickable(
+                        By.cssSelector("input[type='password']")
+                )
         );
-        pause();
+
+
         passwordField.clear();
         pause();
 
-        // Saisie lettre par lettre
-        for (char c : mdp.toCharArray()) {
+
+        for(char c : mdp.toCharArray()) {
             passwordField.sendKeys(String.valueOf(c));
-            try { Thread.sleep(80); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            try {
+                Thread.sleep(100);
+            } catch(Exception e) {}
         }
+
+
         pause();
 
-        // Pause avant de cliquer sur le bouton
-        WebElement submitBtn = driver.findElement(By.cssSelector("button[type='submit']"));
-        pause();
-        submitBtn.click();
 
-        // Pause après clic pour laisser le temps à la réponse serveur
+        WebElement button = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.cssSelector("button[type='submit']")
+                )
+        );
+
+
+        button.click();
+
         pause();
     }
 
-    // 1. Email valide / mot de passe invalide
+
+
     @Test(priority = 1)
-    public void testEmailValideMdpInvalide() {
-        effectuerLogin("raniabenammar491@gmail.com", "mauvais_mdp");
-        pause();
+    public void testEmailValideMdpInvalide(){
+
+        effectuerLogin(
+                "raniabenammar491@gmail.com",
+                "mauvais_mdp"
+        );
+
         Assert.assertTrue(
-            driver.getCurrentUrl().contains("/auth/login"),
-            "ERREUR : On aurait dû rester sur la page login (MDP faux)."
+                driver.getCurrentUrl().contains("/auth/login"),
+                "Le test a échoué : le mauvais mot de passe a accepté la connexion"
         );
     }
 
-    // 2. Email invalide / mot de passe valide
+
+
     @Test(priority = 2)
-    public void testEmailInvalideMdpValide() {
-        effectuerLogin("fausse_rania@gmail.com", "1234566");
-        pause();
+    public void testEmailInvalideMdpValide(){
+
+        effectuerLogin(
+                "fausse_rania@gmail.com",
+                "1234566"
+        );
+
         Assert.assertTrue(
-            driver.getCurrentUrl().contains("/auth/login"),
-            "ERREUR : On aurait dû rester sur la page login (Email faux)."
+                driver.getCurrentUrl().contains("/auth/login"),
+                "Le test a échoué : un faux email a été accepté"
         );
     }
 
-    // 3. Email vide / mot de passe valide
+
+
     @Test(priority = 3)
-    public void testEmailVideMdpValide() {
-        effectuerLogin("", "1234566");
-        pause();
+    public void testEmailVide(){
+
+        effectuerLogin(
+                "",
+                "1234566"
+        );
+
         Assert.assertTrue(
-            driver.getCurrentUrl().contains("/auth/login"),
-            "ERREUR : On aurait dû rester sur la page login (Email vide)."
+                driver.getCurrentUrl().contains("/auth/login")
         );
     }
 
-    // 4. Email valide / mot de passe vide
+
+
     @Test(priority = 4)
-    public void testEmailValideMdpVide() {
-        effectuerLogin("raniabenammar491@gmail.com", "");
-        pause();
+    public void testMotPasseVide(){
+
+        effectuerLogin(
+                "raniabenammar491@gmail.com",
+                ""
+        );
+
         Assert.assertTrue(
-            driver.getCurrentUrl().contains("/auth/login"),
-            "ERREUR : On aurait dû rester sur la page login (MDP vide)."
+                driver.getCurrentUrl().contains("/auth/login")
         );
     }
 
-    // 5. Identifiants valides — test positif
+
+
     @Test(priority = 5)
-    public void testToutValide() {
-        effectuerLogin("raniabenammar491@gmail.com", "1234566");
-        pause();
+    public void testConnexionValide(){
 
-        boolean redirectionReussie = wait.until(
-            ExpectedConditions.not(ExpectedConditions.urlContains("/auth/login"))
+        effectuerLogin(
+                "raniabenammar491@gmail.com",
+                "1234566"
         );
-        pause();
+
+
+        boolean ok = wait.until(
+                ExpectedConditions.not(
+                        ExpectedConditions.urlContains("/auth/login")
+                )
+        );
+
+
         Assert.assertTrue(
-            redirectionReussie,
-            "ERREUR : La connexion a échoué avec des identifiants valides."
+                ok,
+                "La connexion n'a pas réussi"
         );
     }
 
-@AfterMethod
-public void finish() {
-    // Pause avant de fermer pour voir le résultat final
-    pause();
-    if (driver != null) {
-        driver.quit();
+
+
+    @AfterMethod
+    public void finish(){
+
+        pause();
+
+        if(driver != null){
+            driver.quit();
+        }
     }
-}
 }
