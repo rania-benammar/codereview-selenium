@@ -2,53 +2,29 @@ stages:
   - test
 
 variables:
-  # Empêche Maven de télécharger les plugins à chaque fois
-  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
   SCREENSHOTS_DIR: "selenium-tests/screenshots"
+  SELENIUM_URL: "http://chrome-server:4444/wd/hub"
 
 selenium-tests:
   stage: test
-  image: maven:3.9.6-eclipse-temurin-21 
-  
+
+  image: maven:3.9.6-eclipse-temurin-21
+
   services:
-    - name: selenium/standalone-chrome:147.0-20260404
+    - name: selenium/standalone-chrome:latest
       alias: chrome-server
 
-  before_script:
-    - apt-get update -qq && apt-get install -y -qq wget gnupg unzip curl
-    # Installation simplifiée de Chrome (nécessaire pour le mode 'headless' local)
-    - apt-get update && apt-get install -y fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libcups2 libdbus-1-3 libdrm2 libgbm1 libgtk-3-0 libnspr4 libnss3 libx11-xcb1 libxcb-dri3-0 libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 xdg-utils
-    - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    - dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -fy
-    
-    # Note : Plus besoin d'installer manuellement ChromeDriver avec Selenium 4.11+ 
-    # Selenium Manager s'en occupe automatiquement.
-
   script:
+    - echo "Selenium URL : $SELENIUM_URL"
     - cd selenium-tests
-    - mvn --version
-    # - mvn clean test
-    # Exécution en mode headless (assurez-vous que votre code Java configure ChromeOptions)
-    - mvn $MAVEN_OPTS clean test
-
-  after_script:
-    - echo "Recherche des rapports et captures..."
+    - mkdir -p screenshots
+    - mvn clean test -DSELENIUM_URL=$SELENIUM_URL
 
   artifacts:
-    name: "selenium-reports-$CI_COMMIT_SHORT_SHA"
     when: always
-    expire_in: 7 days
     paths:
       - selenium-tests/target/surefire-reports/
-      - $SCREENSHOTS_DIR/
+      - selenium-tests/screenshots/
     reports:
-      junit: selenium-tests/target/surefire-reports/TEST-*.xml
-
-  cache:
-    key: maven-cache
-    paths:
-      - .m2/repository
-  
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
+      junit:
+        - selenium-tests/target/surefire-reports/TEST-*.xml
